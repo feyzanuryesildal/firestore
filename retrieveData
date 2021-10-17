@@ -1,0 +1,97 @@
+using System;
+using System.Collections;
+
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Google.Cloud.Firestore;
+
+namespace yazLab1
+{
+    public partial class Form1 : Form
+    {
+        FirestoreDb databse;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load_1(object sender, EventArgs e)
+        {
+            String path = AppDomain.CurrentDomain.BaseDirectory + @"yazlabfirebase-bea47-firebase-adminsdk-g4ux1-0d000761af.json";
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", path);
+
+            databse = FirestoreDb.Create("yazlabfirebase-bea47");
+            
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Get_All_Document_From_a_collection();
+        }
+
+        async void GetAllData_of_a_document()
+        { 
+            DocumentReference docref = databse.Collection("City").Document("city");
+            DocumentSnapshot snap = await docref.GetSnapshotAsync();
+
+            if (snap.Exists)
+            {
+                Dictionary<string, object> city = snap.ToDictionary();
+                foreach(var item in city)
+                {
+                    Console.WriteLine(string.Format(item.Key + " " + item.Value + "\n"));
+                    //MessageBox.Show("başarılı");
+                    //MessageBox.Show(item.Key + " " + item.Value + "\n");
+                    richTextBox1.Text += string.Format("{0}: {1}\n", item.Key, item.Value); // ekrana rich boc koyup yap
+                }
+            }
+        }
+
+        async void GetSpesificData_of_a_document()
+        {
+            DocumentReference docref = databse.Collection("City").Document("city");
+            DocumentSnapshot snap = await docref.GetSnapshotAsync();
+
+            if (snap.Exists)
+            {
+                City city = snap.ConvertTo<City>();
+                textBox1.Text = city.ankara; // firebasedeki isimler
+                textBox2.Text = city.istanbul.ToString();
+            }
+        }
+
+        async void Get_All_Document_From_a_collection()
+        {
+            Query Qref = databse.Collection("City");
+            QuerySnapshot snap = await Qref.GetSnapshotAsync();
+
+            foreach (DocumentSnapshot docsnap in snap)
+            {
+                City city = docsnap.ConvertTo<City>();
+                if (docsnap.Exists)
+                {
+                    richTextBox2.Text += "[City name: " + docsnap.Id + "]\n";
+                    richTextBox2.Text += city.ankara;
+                    
+                }
+            }
+
+           
+        }
+
+        
+
+        private void richTextBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+       
+    }
+}
